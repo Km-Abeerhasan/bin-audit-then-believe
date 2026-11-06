@@ -1,0 +1,18 @@
+% ==============================================================================
+% Chapter 2: Related Work
+% BiNPipeline: Audited Evidence-Based Fact-Checking Engine
+% ==============================================================================
+
+\section{Related Work}
+\label{sec:related_work}
+
+The design of automated fact-checking architectures intersects three primary paradigms: benchmark evidence-based verification, low-resource NLP adaptation, and hybrid neuro-symbolic reasoning.
+
+\subsection{Evidence-Based Fact Verification Benchmarks}
+Foundational fact verification frameworks have primarily evolved around large-scale English corpora. The FEVER dataset pioneered the three-way stance formulation (Supported, Refuted, NotEnoughInfo), demonstrating the utility of pipeline architectures that decouple document retrieval from textual entailment. Subsequent efforts expanded to multi-modal and real-world media verification, including MultiFC and Climate-FEVER. However, existing datasets predominantly assume dense web-scale indexing and uniform source reliability, assumptions that do not hold in fragmented digital media environments.
+
+\subsection{Fact Verification in Low-Resource Indic Languages}
+Automated rumor verification in Indic languages, particularly Bengali, encounters severe evidentiary sparsity. While multilingual pretrained language models (mBERT, XLM-RoBERTa, IndicBERT) provide cross-lingual transfer capabilities, their zero-shot stance inference degrades substantially under nuanced lexical morphotactics and code-mixed digital reporting. Prior efforts in Bengali fake news detection rely heavily on static surface-level textual classifiers, treating verification as an isolated text classification task without retrieving corroborating or refuting external documents. Consequently, these models suffer from catastrophic generalization failures when evaluated on unindexed emergent claims.
+
+\subsection{Neuro-Symbolic Reasoning and Deterministic Guardrails}
+To mitigate generative hallucinations and overconfidence in LLM-based verification, recent research emphasizes selective classification and uncertainty estimation. Pure sequence-to-sequence generation frequently invents synthetic justifications or assigns unwarranted certainty under epistemic ambiguity. In contrast, neuro-symbolic and rule-governed decision systems combine the representational strength of neural retrieval and inference encoders with deterministic, interpretable aggregation logic. Our proposed \textsc{BiNPipeline} architecture advances this paradigm by pairing soft, temperature-calibrated probabilistic confidence with hard, audit-centric verification gates specifically calibrated for regional news ecosystems.
