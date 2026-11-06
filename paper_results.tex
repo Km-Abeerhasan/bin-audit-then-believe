@@ -59,12 +59,12 @@ Uncertainty Gate & Hallucination Guardrail & $\tau_{\text{abstain}}$ & 0.60 \\
 \end{tabular}
 \end{table}
 
-\noindent \textbf{Verdict Aggregation and Decision Logic Analysis:}  
-The empirical evaluation of Stage 6 demonstrates complete deterministic alignment with the adjudicated human ground truth across all 50 pilot claims, achieving 100\% classification accuracy (Table~\ref{tab:confusion_matrix}). Specifically, authoritative refutations were reliably captured via \texttt{RULE\_4B\_OFFICIAL\_DENIAL} ($n=23$), while nuanced contextual distortions lacking legitimate origin were isolated using \texttt{RULE\_1\_PROVENANCE\_ABSENCE} ($n=18$). Furthermore, instances without conclusive evidentiary support were safely handled by \texttt{RULE\_9\_LOW\_CONFIDENCE\_FALLBACK} ($n=8$), preventing false-positive assertions under evidentiary ambiguity.
-
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\linewidth]{docs/figures/verdict_confusion_matrix.pdf}
+\includegraphics[width=0.70\linewidth]{docs/figures/verdict_confusion_matrix.pdf}
 \caption{Confusion Matrix of the Stage 6 Deterministic Verdict Engine on 50 Adjudicated Claims, Demonstrating Complete Class Alignment.}
 \label{fig:verdict_cm}
 \end{figure}
+
+\noindent \textbf{Verdict Aggregation and Decision Logic Analysis:}  
+The empirical evaluation of Stage 6 demonstrates complete deterministic alignment with the adjudicated human ground truth across all 50 pilot claims, achieving 100\% classification accuracy (Table~\ref{tab:confusion_matrix} and Figure~\ref{fig:verdict_cm}). Specifically, authoritative refutations were reliably captured via \texttt{RULE\_4B\_OFFICIAL\_DENIAL} ($n=23$), while nuanced contextual distortions lacking legitimate origin were isolated using \texttt{RULE\_1\_PROVENANCE\_ABSENCE} ($n=18$). Furthermore, instances without conclusive evidentiary support were safely handled by \texttt{RULE\_9\_LOW\_CONFIDENCE\_FALLBACK} ($n=8$), preventing false-positive assertions under evidentiary ambiguity.
