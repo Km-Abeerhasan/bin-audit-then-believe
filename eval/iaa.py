@@ -1,84 +1,105 @@
-"""
-eval/iaa.py
-Inter-Annotator Agreement (IAA) Harness for BiN (Audit-Then-Believe).
-Calculates Krippendorff's Alpha (Nominal Metric) and Cohen's Kappa
-across human fact-checkers for the 5 decoupled verdict categories.
-"""
-
-from typing import List, Dict, Any, Tuple
+import argparse
+import csv
+import random
 from collections import Counter
 
+LABELS = ["SUPPORTED", "REFUTED", "MISLEADING", "CONFLICTING", "INSUFFICIENT_EVIDENCE"]
 
-def compute_cohens_kappa(rater1: List[str], rater2: List[str]) -> float:
-    """
-    Computes Cohen's Kappa for two annotators across nominal labels.
-    """
-    if len(rater1) != len(rater2) or len(rater1) == 0:
-        return 0.0
+def load(path):
+    with open(path, encoding="utf-8", newline="") as f:
+        return {r["claim_id"].strip(): r["label"].strip().upper() for r in csv.DictReader(f) if "claim_id" in r and "label" in r}
 
-    n = len(rater1)
-    # Observed agreement
-    p_o = sum(1 for a, b in zip(rater1, rater2) if a == b) / n
+def cohen_kappa(a, b):
+    n = len(a)
+    po = sum(x == y for x, y in zip(a, b)) / n
+    ca, cb = Counter(a), Counter(b)
+    pe = sum(ca[c] * cb[c] for c in set(a) | set(b)) / (n * n)
+    if pe == 1:
+        return 1.0 if po == 1 else float("nan")
+    return (po - pe) / (1 - pe)
 
-    # Expected agreement
-    counts1 = Counter(rater1)
-    counts2 = Counter(rater2)
-    categories = set(rater1) | set(rater2)
+def krippendorff_alpha_nominal(a, b):
+    o = Counter()
+    for x, y in zip(a, b):
+        o[(x, y)] += 1
+        o[(y, x)] += 1
+    nc = Counter()
+    for (c, _k), v in o.items():
+        nc[c] += v
+    n = sum(nc.values())
+    d_o = sum(v for (c, k), v in o.items() if c != k)
+    d_e = sum(nc[c] * nc[k] for c in nc for k in nc if c != k)
+    if d_e == 0:
+        return 1.0 if d_o == 0 else float("nan")
+    return 1 - (n - 1) * d_o / d_e
 
-    p_e = sum((counts1[c] / n) * (counts2[c] / n) for c in categories)
+def bootstrap_ci(a, b, fn, reps=2000, seed=0):
+    rng = random.Random(seed)
+    n = len(a)
+    vals = []
+    for _ in range(reps):
+        idx = [rng.randrange(n) for _ in range(n)]
+        v = fn([a[i] for i in idx], [b[i] for i in idx])
+        if v == v:
+            vals.append(v)
+    vals.sort()
+    if not vals:
+        return (float("nan"), float("nan"))
+    return vals[int(0.025 * len(vals))], vals[int(0.975 * len(vals)) - 1]
 
-    if p_e == 1.0:
-        return 1.0
-    return round((p_o - p_e) / (1.0 - p_e), 4)
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--a", required=True)
+    p.add_argument("--b", required=True)
+    args = p.parse_args()
 
+    A, B = load(args.a), load(args.b)
+    ids = sorted(set(A) & set(B))
+    missing = sorted(set(A) ^ set(B))
+    ids_l = [i for i in ids if A[i] and B[i]]
+    skipped = [i for i in ids if not (A[i] and B[i])]
+    a = [A[i] for i in ids_l]
+    b = [B[i] for i in ids_l]
+    n = len(a)
+    if n == 0:
+        raise SystemExit("No overlapping labeled claims found.")
 
-def compute_krippendorff_alpha_nominal(matrix: List[List[str]]) -> float:
-    """
-    Computes Krippendorff's Alpha for nominal categories with arbitrary raters.
-    Input matrix: List of items, where each item is a list of ratings from annotators.
-    """
-    all_units = matrix
-    if not all_units:
-        return 0.0
+    bad = sorted({x for x in a + b if x not in LABELS})
+    if bad:
+        print(f"WARNING: unknown labels (check spelling): {bad}")
 
-    # Count values per unit
-    pair_counts = 0
-    observed_mismatches = 0.0
+    agree = sum(x == y for x, y in zip(a, b)) / n
+    kappa = cohen_kappa(a, b)
+    alpha = krippendorff_alpha_nominal(a, b)
+    lo, hi = bootstrap_ci(a, b, krippendorff_alpha_nominal)
 
-    category_counts: Counter = Counter()
-    total_ratings = 0
+    print(f"\n=======================================================")
+    print(f"         PILOT INTER-ANNOTATOR AGREEMENT REPORT        ")
+    print(f"=======================================================")
+    print(f"Claims compared:     {n} | Skipped: {len(skipped)} | ID mismatch: {len(missing)}")
+    print(f"Observed Agreement:  {agree*100:.2f}%")
+    print(f"Cohen's Kappa (κ):   {kappa:.4f}")
+    print(f"Krippendorff's α:    {alpha:.4f} (95% Bootstrap CI: [{lo:.4f}, {hi:.4f}])")
 
-    for unit in all_units:
-        m = len(unit)
-        if m < 2:
-            continue
-        pair_counts += m * (m - 1)
-        for val in unit:
-            category_counts[val] += 1
-            total_ratings += 1
+    print("\nPer-class specific agreement (2*both / (countA + countB)):")
+    ca, cb = Counter(a), Counter(b)
+    for c in LABELS:
+        both = sum(1 for x, y in zip(a, b) if x == c and y == c)
+        tot = ca[c] + cb[c]
+        s = f"{2 * both / tot:.3f}" if tot else "n/a"
+        print(f"  {c:<22} A={ca[c]:>3} B={cb[c]:>3}  agreement={s}")
 
-        for i in range(m):
-            for j in range(i + 1, m):
-                if unit[i] != unit[j]:
-                    observed_mismatches += 2.0  # symmetric difference
+    print("\nConfusion Matrix (Rows: Annotator A, Cols: Annotator B):")
+    print(" " * 24 + " ".join(f"{c[:5]:>6}" for c in LABELS))
+    for r in LABELS:
+        row = [sum(1 for x, y in zip(a, b) if x == r and y == c) for c in LABELS]
+        print(f"  {r:<22}" + " ".join(f"{v:>6}" for v in row))
 
-    if pair_counts == 0 or total_ratings <= 1:
-        return 1.0
+    disagreements = [(i, x, y) for i, x, y in zip(ids_l, a, b) if x != y]
+    print(f"\nDisagreements to adjudicate ({len(disagreements)}):")
+    for i, x, y in disagreements:
+        print(f"  • {i}: Annotator_A={x} | Annotator_B={y}")
+    print("=======================================================\n")
 
-    # D_o: Observed disagreement
-    d_o = observed_mismatches / pair_counts
-
-    # D_e: Expected disagreement
-    expected_mismatches = 0.0
-    for c1, n1 in category_counts.items():
-        for c2, n2 in category_counts.items():
-            if c1 != c2:
-                expected_mismatches += n1 * n2
-
-    d_e = expected_mismatches / (total_ratings * (total_ratings - 1))
-
-    if d_e == 0.0:
-        return 1.0
-
-    alpha = 1.0 - (d_o / d_e)
-    return round(alpha, 4)
+if __name__ == "__main__":
+    main()
