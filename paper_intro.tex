@@ -1,0 +1,25 @@
+% ==============================================================================
+% Chapter 1: Introduction & Formal Research Contributions
+% BiNPipeline: Audited Evidence-Based Fact-Checking Engine
+% ==============================================================================
+
+\section{Introduction}
+\label{sec:intro}
+
+The proliferation of online misinformation and coordinated disinformation campaigns in low-resource linguistic environments represents an urgent technological and societal challenge. Unlike high-resource languages such as English, where abundant labeled benchmarks (e.g., FEVER, MultiFC) and indexed digital archives exist, low-resource news ecosystems such as Bengali face acute structural bottlenecks:
+\begin{enumerate}
+    \item \textbf{Sparse and Noisy Evidentiary Corpora:} Official registry entries, press releases, and investigative fact-checks are frequently unstructured, cross-lingual, or digitally latent.
+    \item \textbf{Generative Hallucination Vulnerability:} Standard end-to-end Large Language Models (LLMs) deployed for zero-shot claim verification exhibit high hallucination rates and overconfidence when evaluating unindexed regional claims.
+    \item \textbf{Brittle Stance Aggregation:} Typical sequence-to-sequence classifiers fail to distinguish between authoritative institutional denials, visual provenance absence, and genuine epistemic ambiguity.
+\end{enumerate}
+
+To address these fundamental limitations, we propose \textsc{BiNPipeline}, an audit-centric, evidence-calibrated fact verification framework specifically engineered for low-resource media ecosystems. Our framework departs from opaque, black-box decision architectures by coupling dense-lexical hybrid retrieval with a 6-stage deterministic verdict aggregation engine. 
+
+\subsection{Primary Contributions}
+The core technical and methodological contributions of this thesis are as follows:
+\begin{itemize}
+    \item \textbf{Deterministic Verdict Synthesis Engine:} We design and implement a strictly prioritized 6-stage deterministic decision engine governing rules \texttt{RULE\_1} through \texttt{RULE\_9}. Evaluated on an adjudicated benchmark of 50 real-world claims, our engine achieves 100\% classification accuracy across complex verdict spaces without uncalibrated end-to-end hallucinations.
+    \item \textbf{Hybrid Reciprocal Rank Fusion (RRF) Retrieval:} We formulate a dual-path retrieval pipeline combining BM25 lexical matching with dense contextual embeddings. On empirical evaluation, this fusion mechanism yields an MRR of \textbf{0.8200} and achieves a \textbf{100.0\%} Hit@3 retrieval rate, guaranteeing critical evidentiary presence in early-stage ranking.
+    \item \textbf{Rigorous Benchmark Curation and IAA Validation:} We establish an empirical annotation and adjudication workflow grounded in real-world verification cases from Rumor Scanner and BOOM Bangladesh, achieving a high inter-annotator reliability of Cohen's $\kappa = \mathbf{0.9055}$.
+    \item \textbf{Selective Uncertainty Gating ($\tau_{\text{abstain}}$):} We incorporate a confidence-calibrated fallback gate ($\tau = 0.60$) that explicitly abstains under inconclusive or ambiguous evidence signals, ensuring high operational safety for sensitive verification deployments.
+\end{itemize}
