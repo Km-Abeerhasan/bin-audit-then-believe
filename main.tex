@@ -1,0 +1,54 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- Essential Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{geometry}
+\usepackage{cite}
+\usepackage{caption}
+
+\geometry{margin=1in}
+
+\title{\textbf{BiN\_Audit\_Then\_Believe: Evidence-Calibrated Multimodal Fact Verification with Deterministic Audit Gates for Low-Resource Media}}
+
+\author{
+    \textbf{K. M. Abeer Hasan} \\
+    Department of Computer Science and Engineering \\
+    Jahangirnagar University \\
+    \texttt{abeerhasan.cse@juniv.edu}
+}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Automated rumor verification in low-resource linguistic environments is often hindered by hallucinatory generative outputs, sparse evidentiary corpora, and brittle confidence calibration. In this work, we propose \textsc{BiNPipeline}, an audited evidence-based verification architecture operating over a deterministic decision engine. Our pipeline couples hybrid lexical-dense retrieval via Reciprocal Rank Fusion (RRF) with a temperature-scaled stance inference classifier. Evaluated against an adjudicated benchmark of 50 Bengali real-world claims ($\kappa = 0.9055$), our deterministic Stage-6 decision engine achieves 100\% alignment across ground truth verdict categories, isolating official refutations and provenance absences while safeguarding against low-evidence hallucinations through uncertainty gating.
+\end{abstract}
+
+% --- Section 1 & 2: Introduction and Related Work (Placeholders for compilation) ---
+\section{Introduction}
+Misinformation propagation in low-resource Indic languages poses substantial challenges to automated fact-checking pipelines...
+
+\section{Related Work}
+Prior work in fact verification has largely concentrated on high-resource English benchmarks such as FEVER...
+
+% --- Section 3: Methodology (Included from dedicated file) ---
+\input{paper_methodology.tex}
+
+% --- Section 4: Experimental Results & Benchmarks (Included from dedicated file) ---
+\section{Experimental Results and Analysis}
+\label{sec:results}
+\input{paper_results.tex}
+
+% --- Section 5: Conclusion ---
+\section{Conclusion}
+We presented \textsc{BiNPipeline}, an evidence-calibrated framework incorporating a deterministic Stage-6 verdict engine with selective audit gates...
+
+\end{document}
