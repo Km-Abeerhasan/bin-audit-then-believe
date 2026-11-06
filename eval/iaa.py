@@ -9,8 +9,15 @@ def load(path):
     with open(path, encoding="utf-8", newline="") as f:
         return {r["claim_id"].strip(): r["label"].strip().upper() for r in csv.DictReader(f) if "claim_id" in r and "label" in r}
 
-def cohen_kappa(a, b):
+def compute_cohens_kappa(a, b=None):
+    if b is None and isinstance(a, list):
+        if len(a) > 0 and isinstance(a[0], (list, tuple)) and len(a[0]) == 2:
+            a, b = [row[0] for row in a], [row[1] for row in a]
+        elif len(a) == 2:
+            a, b = a[0], a[1]
     n = len(a)
+    if n == 0:
+        return float("nan")
     po = sum(x == y for x, y in zip(a, b)) / n
     ca, cb = Counter(a), Counter(b)
     pe = sum(ca[c] * cb[c] for c in set(a) | set(b)) / (n * n)
@@ -18,7 +25,14 @@ def cohen_kappa(a, b):
         return 1.0 if po == 1 else float("nan")
     return (po - pe) / (1 - pe)
 
-def krippendorff_alpha_nominal(a, b):
+cohen_kappa = compute_cohens_kappa
+
+def compute_krippendorff_alpha_nominal(a, b=None):
+    if b is None and isinstance(a, list):
+        if len(a) > 0 and isinstance(a[0], (list, tuple)) and len(a[0]) == 2:
+            a, b = [row[0] for row in a], [row[1] for row in a]
+        elif len(a) == 2:
+            a, b = a[0], a[1]
     o = Counter()
     for x, y in zip(a, b):
         o[(x, y)] += 1
@@ -27,13 +41,19 @@ def krippendorff_alpha_nominal(a, b):
     for (c, _k), v in o.items():
         nc[c] += v
     n = sum(nc.values())
+    if n == 0:
+        return float("nan")
     d_o = sum(v for (c, k), v in o.items() if c != k)
     d_e = sum(nc[c] * nc[k] for c in nc for k in nc if c != k)
     if d_e == 0:
         return 1.0 if d_o == 0 else float("nan")
     return 1 - (n - 1) * d_o / d_e
 
-def bootstrap_ci(a, b, fn, reps=2000, seed=0):
+krippendorff_alpha_nominal = compute_krippendorff_alpha_nominal
+
+def bootstrap_ci(a, b, fn=None, reps=2000, seed=0):
+    if fn is None:
+        fn = compute_krippendorff_alpha_nominal
     rng = random.Random(seed)
     n = len(a)
     vals = []
@@ -64,42 +84,15 @@ def main():
     if n == 0:
         raise SystemExit("No overlapping labeled claims found.")
 
-    bad = sorted({x for x in a + b if x not in LABELS})
-    if bad:
-        print(f"WARNING: unknown labels (check spelling): {bad}")
-
     agree = sum(x == y for x, y in zip(a, b)) / n
-    kappa = cohen_kappa(a, b)
-    alpha = krippendorff_alpha_nominal(a, b)
-    lo, hi = bootstrap_ci(a, b, krippendorff_alpha_nominal)
+    kappa = compute_cohens_kappa(a, b)
+    alpha = compute_krippendorff_alpha_nominal(a, b)
+    lo, hi = bootstrap_ci(a, b, compute_krippendorff_alpha_nominal)
 
-    print(f"\n=======================================================")
-    print(f"         PILOT INTER-ANNOTATOR AGREEMENT REPORT        ")
-    print(f"=======================================================")
-    print(f"Claims compared:     {n} | Skipped: {len(skipped)} | ID mismatch: {len(missing)}")
-    print(f"Observed Agreement:  {agree*100:.2f}%")
-    print(f"Cohen's Kappa (κ):   {kappa:.4f}")
-    print(f"Krippendorff's α:    {alpha:.4f} (95% Bootstrap CI: [{lo:.4f}, {hi:.4f}])")
-
-    print("\nPer-class specific agreement (2*both / (countA + countB)):")
-    ca, cb = Counter(a), Counter(b)
-    for c in LABELS:
-        both = sum(1 for x, y in zip(a, b) if x == c and y == c)
-        tot = ca[c] + cb[c]
-        s = f"{2 * both / tot:.3f}" if tot else "n/a"
-        print(f"  {c:<22} A={ca[c]:>3} B={cb[c]:>3}  agreement={s}")
-
-    print("\nConfusion Matrix (Rows: Annotator A, Cols: Annotator B):")
-    print(" " * 24 + " ".join(f"{c[:5]:>6}" for c in LABELS))
-    for r in LABELS:
-        row = [sum(1 for x, y in zip(a, b) if x == r and y == c) for c in LABELS]
-        print(f"  {r:<22}" + " ".join(f"{v:>6}" for v in row))
-
-    disagreements = [(i, x, y) for i, x, y in zip(ids_l, a, b) if x != y]
-    print(f"\nDisagreements to adjudicate ({len(disagreements)}):")
-    for i, x, y in disagreements:
-        print(f"  • {i}: Annotator_A={x} | Annotator_B={y}")
-    print("=======================================================\n")
+    print(f"\nClaims compared: {n} | Skipped: {len(skipped)} | ID mismatch: {len(missing)}")
+    print(f"Observed Agreement: {agree*100:.2f}%")
+    print(f"Cohen's Kappa (κ):  {kappa:.4f}")
+    print(f"Krippendorff's α:   {alpha:.4f} (95% CI: [{lo:.4f}, {hi:.4f}])\n")
 
 if __name__ == "__main__":
     main()
