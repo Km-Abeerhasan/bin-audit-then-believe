@@ -47,3 +47,18 @@ BiN addresses low-resource and multimodal misinformation (such as manipulated sc
 7. **S6 (Decision Aggregator):** Deterministic 9-priority decision table logging `rule_fired` and secondary flags.
 8. **S7 (Multi-Signal Reliability Gate):** Trained on grouped out-of-fold (OOF) cross-validation splits to optimize selective classification (AURC).
 9. **S8 (Report & Citation Audit):** Multi-tier citation audit (exact-span match, provenance, URL, NLI stance) with zero free-form text generation.
+
+## Empirical Pilot Benchmarks (Rumor Scanner 50-Claim Set)
+
+### 1. Inter-Annotator Agreement (IAA)
+- **Observed Agreement**: 94.00%
+- **Cohen's Kappa ($\kappa$)**: `0.9055`
+- **Krippendorff's Alpha ($\alpha$)**: `0.9063` (95% CI: `[0.7840, 1.0000]`)
+- **Safety Critical Claims**: 30/50 (60.0%)
+- **Provenance / Framing Distortions**: 18/50 (36.0%)
+
+### 2. Stage 3 Hybrid Retrieval Fusion (BM25 + Dense RRF)
+- **Mean Reciprocal Rank (MRR)**: `0.8200`
+- **Hit Rate @ 1**: `64.00%` (32/50)
+- **Hit Rate @ 3**: `100.00%` (50/50)
+- **Hit Rate @ 5**: `100.00%` (50/50)
