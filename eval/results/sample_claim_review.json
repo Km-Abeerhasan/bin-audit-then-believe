@@ -1,0 +1,38 @@
+{
+  "@context": "https://schema.org",
+  "@type": "ClaimReview",
+  "url": "https://github.com/Km-Abeerhasan/bin-audit-then-believe/audit/dcc02c9d2e62c985",
+  "datePublished": "2026-11-07T08:05:48.586731+00:00",
+  "claimReviewed": "বাংলাদেশ ব্যাংকের ৫০০০ টাকার নতুন নোট ইস্যু করা হয়েছে।",
+  "itemReviewed": {
+    "@type": "CreativeWork",
+    "author": {
+      "@type": "Person",
+      "name": "Viral Facebook Post"
+    },
+    "datePublished": "2026-11-07T08:05:48.586731+00:00"
+  },
+  "reviewRating": {
+    "@type": "Rating",
+    "ratingValue": "REFUTED",
+    "bestRating": "SUPPORTED",
+    "worstRating": "REFUTED",
+    "alternateName": "RULE_4B_OFFICIAL_DENIAL",
+    "ratingExplanation": "Bangladesh Bank issued a formal press circular refuting the issuance of a 5000-taka note."
+  },
+  "auditMetadata": {
+    "algorithm": "BiNPipeline-Stage6-DeterministicEngine",
+    "confidence_score": 0.97,
+    "cryptographic_fingerprint_sha256": "dcc02c9d2e62c985a5f579f215695372be37666d777157061b259c689add262c",
+    "verification_status": "CERTIFIED_AUDITABLE",
+    "registry_referenced": "tier1_publishers.json"
+  },
+  "evidentiaryTrace": [
+    {
+      "source": "pressinform.gov.bd",
+      "tier": 1,
+      "stance": "Contradiction",
+      "score": 0.96
+    }
+  ]
+}

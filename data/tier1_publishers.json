@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-11-07",
+  "description": "BiNPipeline Tier-1 Verified Media, Fact-Checkers, and Government Registries",
+  "publishers": {
+    "fact_checkers": [
+      {"name": "Rumor Scanner Bangladesh", "domain": "rumorscanner.com", "ifcn_signatory": true},
+      {"name": "BOOM Bangladesh", "domain": "boomlive.in", "ifcn_signatory": true},
+      {"name": "FactWatch", "domain": "fact-watch.org", "ifcn_signatory": true}
+    ],
+    "mainstream_bangla_media": [
+      {"name": "Prothom Alo", "domain": "prothomalo.com", "tier": 1},
+      {"name": "The Daily Star Bangla", "domain": "bangla.thedailystar.net", "tier": 1},
+      {"name": "bdnews24", "domain": "bangla.bdnews24.com", "tier": 1},
+      {"name": "BSS News (National News Agency)", "domain": "bssnews.net", "tier": 1},
+      {"name": "BBC Bangla", "domain": "bbc.com/bengali", "tier": 1}
+    ],
+    "institutional_registries": [
+      {"name": "Press Information Department (PID)", "domain": "pressinform.gov.bd", "tier": 1},
+      {"name": "Bangladesh Police Official Portal", "domain": "police.gov.bd", "tier": 1},
+      {"name": "Directorate General of Health Services", "domain": "dghs.gov.bd", "tier": 1},
+      {"name": "Ministry of Education", "domain": "moedu.gov.bd", "tier": 1}
+    ],
+    "international_wires": [
+      {"name": "Reuters", "domain": "reuters.com", "tier": 1},
+      {"name": "Associated Press", "domain": "apnews.com", "tier": 1},
+      {"name": "Agence France-Presse", "domain": "afp.com", "tier": 1}
+    ]
+  }
+}
