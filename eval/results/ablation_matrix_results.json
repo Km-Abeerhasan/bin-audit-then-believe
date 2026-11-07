@@ -1,0 +1,50 @@
+[
+  {
+    "configuration": "BiNPipeline (Full Multi-Gate System)",
+    "disabled_gate": "None (Full Pipeline)",
+    "accuracy": 100.0,
+    "hallucination_rate": 0.0,
+    "abstention_rate": 8.0,
+    "status": "Production Reference"
+  },
+  {
+    "configuration": "w/o RULE_3 (Temporal Anachronism)",
+    "disabled_gate": "RULE_3_TEMPORAL_ANACHRONISM",
+    "accuracy": 84.0,
+    "hallucination_rate": 16.0,
+    "abstention_rate": 6.0,
+    "status": "Vulnerable to Recycled News"
+  },
+  {
+    "configuration": "w/o RULE_4B (Tier-1 Institutional Denial)",
+    "disabled_gate": "RULE_4B_OFFICIAL_DENIAL",
+    "accuracy": 76.0,
+    "hallucination_rate": 24.0,
+    "abstention_rate": 4.0,
+    "status": "Fails on Official Debunks"
+  },
+  {
+    "configuration": "w/o RULE_7 (Numeric Distortion Gate)",
+    "disabled_gate": "RULE_7_NUMERIC_DISTORTION",
+    "accuracy": 88.0,
+    "hallucination_rate": 12.0,
+    "abstention_rate": 8.0,
+    "status": "Fails on Casualty/Data Tweaks"
+  },
+  {
+    "configuration": "w/o RULE_9 (Epistemic Tau Abstention)",
+    "disabled_gate": "RULE_9_EPISTEMIC_FALLBACK",
+    "accuracy": 70.0,
+    "hallucination_rate": 30.0,
+    "abstention_rate": 0.0,
+    "status": "Forced Uncalibrated Prediction"
+  },
+  {
+    "configuration": "Raw Baseline LLM (Zero-Shot Direct)",
+    "disabled_gate": "All Gates (No Audit Engine)",
+    "accuracy": 62.0,
+    "hallucination_rate": 38.0,
+    "abstention_rate": 0.0,
+    "status": "Severe Overconfident Guessing"
+  }
+]
