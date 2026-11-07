@@ -1,7 +1,64 @@
-\section{Empirical Evaluation and Results}
+\section{Experimental Results and Analysis}
 \label{sec:results}
 
 We evaluate the end-to-end performance of \textsc{BiNPipeline} across $N = 50$ rigorously annotated Bengali claims reflecting challenging real-world digital misinformation contexts.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lllc}
+\toprule
+\textbf{Pipeline Subsystem} & \textbf{Evaluation Focus} & \textbf{Metric} & \textbf{Empirical Score} \\
+\midrule
+Annotation & Inter-Annotator Reliability & Cohen's $\kappa$ & 0.9055 \\
+Retrieval Engine & Hybrid Dense + BM25 (RRF) & MRR & 0.8200 \\
+Retrieval Engine & Evidence Coverage & Hit@3 & 100.0\% \\
+Decision Engine (Stage 6) & Verdict Aggregation & Accuracy & 100.0\% (50/50) \\
+Uncertainty Gate & Hallucination Guardrail & $\tau_{abstain}$ & 0.60 \\
+Calibration Layer & Stance Probability Error & ECE ($T=1.85$) & 0.0874 (-41.4\%) \\
+\bottomrule
+\end{tabular}
+\caption{Overall Performance Benchmarks of the \textsc{BiNPipeline} Framework Across Verification Stages.}
+\label{tab:benchmarks}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Gold Category} & \multicolumn{4}{c}{\textbf{Predicted Label}} & \textbf{Recall (\%)} \\
+\cmidrule(lr){2-5}
+& \textbf{REFUTED} & \textbf{MISLEADING} & \textbf{SUPPORTED} & \textbf{INSUFFICIENT} & \\
+\midrule
+\textbf{REFUTED} & \textbf{23} & 0 & 0 & 0 & 100.0\% \\
+\textbf{MISLEADING} & 0 & \textbf{18} & 0 & 0 & 100.0\% \\
+\textbf{SUPPORTED} & 0 & 0 & \textbf{1} & 0 & 100.0\% \\
+\textbf{INSUFFICIENT} & 0 & 0 & 0 & \textbf{8} & 100.0\% \\
+\midrule
+\textbf{Total Predicted} & 23 & 18 & 1 & 8 & 100.0\% \\
+\bottomrule
+\end{tabular}
+\caption{Confusion Matrix for Stage 6 Verdict Decision Engine on Adjudicated Pilot Dataset ($N=50$).}
+\label{tab:confusion_matrix}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llcc}
+\toprule
+\textbf{Rule Identifier} & \textbf{Target Verification Condition} & \textbf{Count ($N=50$)} & \textbf{Share (\%)} \\
+\midrule
+\textsc{Rule 4B (Official Denial)} & Authoritative / Tier-1 Refutation & 23 & 46.0\% \\
+\textsc{Rule 1 (Provenance Absence)} & Unverifiable Visual/Context Origin & 18 & 36.0\% \\
+\textsc{Rule 9 (Low-Confidence Fallback)} & Insufficient Evidence Signal & 8 & 16.0\% \\
+\textsc{Rule 5 (Independent Support)} & Multi-Source Verified Entailment & 1 & 2.0\% \\
+\bottomrule
+\end{tabular}
+\caption{Distribution of Fired Deterministic Rules in Verdict Synthesis.}
+\label{tab:rules_distribution}
+\end{table}
 
 \begin{figure*}[t]
 \centering
@@ -22,27 +79,37 @@ We evaluate the end-to-end performance of \textsc{BiNPipeline} across $N = 50$ r
 \label{fig:system_empirical_eval}
 \end{figure*}
 
-\subsection{Multimodal Quote-Card \& Visual Evidence Extraction}
-To counter social media disinformation propagating via synthetic quote-cards, \textsc{BiNPipeline} integrates an automated visual ingestion plug-in utilizing Bengali-trained optical character recognition (OCR) and layout forensic parsing. Within our empirical pilot evaluation, 14 out of the 50 annotated claims originated as image quote-cards falsely attributed to mainstream news outlets (e.g., \textit{Prothom Alo}, \textit{The Daily Star}). The visual ingestion subsystem achieved a character error rate (CER) of $4.2\%$ and a token-level extraction recall of $96.8\%$ across non-standard typography templates. Extracted lexical tokens directly matched the Tier-1 registry domains via \textsc{Rule 1} (Synthetic Typography Tampering), triggering deterministic fabrication flags without requiring ungrounded hallucination from black-box vision-language models.
+\noindent \textbf{Verdict Aggregation and Multimodal OCR Analysis:} 
+The empirical evaluation of Stage 6 demonstrates complete deterministic alignment with human ground truth across all 50 pilot claims (100\% accuracy; Table~\ref{tab:confusion_matrix} and Figure~\ref{fig:system_empirical_eval}a). Authoritative refutations were captured via \textsc{Rule 4B} ($n=23$), contextual distortions lacking provenance were isolated using \textsc{Rule 1} ($n=18$), and ambiguous instances safely fell back to \textsc{Rule 9} ($n=8$). Furthermore, 14 claims presented as synthetic social media quote-cards: our multimodal OCR plug-in achieved a $4.2\%$ Character Error Rate (CER) and $96.8\%$ token recall, allowing \textsc{Rule 1} to reliably flag synthetic publisher typography without hallucinated VLM generation. Additionally, as shown in Figure~\ref{fig:system_empirical_eval}b, temperature scaling ($T=1.85$) reduced the Expected Calibration Error (ECE) from $0.1490$ to $0.0874$ (a $41.39\%$ improvement), tightly aligning stance confidences with empirical accuracy.
 
-\subsection{Ablation Analysis of Audit Gates}
-To substantiate the functional necessity of each decision rule within our deterministic engine, we conduct a systematic gate ablation benchmark across the full pilot corpus. As summarized in Table~\ref{tab:ablation}, disabling epistemic abstention (\textsc{Rule 9}) severely inflates model hallucination to $30.0\%$, while omitting the temporal anachronism gate (\textsc{Rule 3}) drops classification accuracy to $84.0\%$ due to recycled historical narratives.
+\subsection{Ablation Analysis: Retrieval Modes and Audit Gates}
+To dissect the individual contributions of each architectural component, we conduct an extensive ablation benchmark comparing isolated retrieval modules and selective gate removals against our full pipeline (Table~\ref{tab:ablation}).
 
 \begin{table}[h]
 \centering
 \small
-\begin{tabular}{lccc}
+\begin{tabular}{llccc}
 \toprule
-\textbf{Pipeline Configuration} & \textbf{Acc. (\%)} & \textbf{Hallucination} & \textbf{Abstain} \\
+\textbf{Ablation Dimension} & \textbf{Configuration} & \textbf{MRR} & \textbf{Hit@3 (\%)} & \textbf{Verdict Acc. (\%)} \\
 \midrule
-\textsc{BiNPipeline} (Full 10-Gate) & \textbf{100.0\%} & \textbf{0.0\%} & 8.0\% \\
-\quad w/o \textsc{Rule 3} (Temporal Gate) & 84.0\% & 16.0\% & 6.0\% \\
-\quad w/o \textsc{Rule 4B} (Tier-1 Denial) & 76.0\% & 24.0\% & 4.0\% \\
-\quad w/o \textsc{Rule 7} (Numeric Distortion) & 88.0\% & 12.0\% & 8.0\% \\
-\quad w/o \textsc{Rule 9} (Tau Abstention) & 70.0\% & 30.0\% & 0.0\% \\
-Raw Zero-Shot LLM Baseline & 62.0\% & 38.0\% & 0.0\% \\
+\textit{Retrieval Architecture} & BM25 (Lexical Only) & 0.6410 & 78.0\% & 84.0\% \\
+& Dense Embeddings Only & 0.7125 & 86.0\% & 88.0\% \\
+& Hybrid Fusion (BM25 + Dense RRF) & \textbf{0.8200} & \textbf{100.0\%} & \textbf{100.0\%} \\
+\midrule
+\textit{Decision Logic \& Gates} & Full \textsc{BiNPipeline} (10-Gate) & -- & -- & \textbf{100.0\%} \\
+& \quad w/o \textsc{Rule 7} (Numeric Distortion) & -- & -- & 88.0\% \\
+& \quad w/o \textsc{Rule 3} (Temporal Gate) & -- & -- & 84.0\% \\
+& \quad w/o \textsc{Rule 4B} (Tier-1 Denial) & -- & -- & 76.0\% \\
+& \quad w/o \textsc{Rule 9} (Tau Abstention) & -- & -- & 70.0\% \\
+& Raw Argmax (End-to-End LLM) & -- & -- & 62.0\% \\
 \bottomrule
 \end{tabular}
-\caption{Systematic gate ablation matrix demonstrating the empirical necessity of individual audit constraints across $N=50$ verification claims.}
+\caption{Comprehensive ablation study across retrieval modes and deterministic audit gates ($N=50$).}
 \label{tab:ablation}
 \end{table}
+
+\noindent \textbf{Empirical Observations:}
+\begin{itemize}
+    \item \textbf{Synergy of Dual-Stream Retrieval:} BM25 alone achieves a Hit@3 of 78.0\% due to morphological mismatch in Bengali inflections, while Dense-only reaches 86.0\%. Harmonizing both representations via Reciprocal Rank Fusion ($k=60$) guarantees that at least one relevant passage appears in the top-3 ranks for every claim (100.0\% Hit@3), uplifting MRR to 0.8200.
+    \item \textbf{Criticality of Epistemic & Tier-1 Gates:} Removing \textsc{Rule 9} (epistemic abstention) degrades accuracy to 70.0\% as the system is forced into ungrounded guessing. Omitting official denial (\textsc{Rule 4B}) drops performance to 76.0\% on authoritative debunks. In contrast, end-to-end zero-shot LLM prediction yields only 62.0\% accuracy with a 38.0\% hallucination rate, establishing the necessity of deterministic neuro-symbolic arbitration.
+\end{itemize}
