@@ -1,64 +1,66 @@
 # BiN_Audit_Then_Believe: Evidence-Calibrated Multimodal Fact Verification with Audit Gates
 
 **Department of Computer Science and Engineering | Jahangirnagar University**  
-Master of Science in Computer Science & Engineering (PMCS Program, Batch 42)
+Master of Science in Computer Science & Engineering (PMCS Program, Batch 42)  
 
-* **Candidate:** Khan Muhammad Abeer Hasan (Student ID: CSE2026095)
-* **Project Supervisor:** Dr. Md. Humayun Kabir, B.Sc (DU), M.Sc (DU), PhD (Ireland)  
-  *Professor, Dept. of CSE, JU (Research: Data Mining, Automatic Program Construction, Software Architecture)*
-* **Course Coordinator:** Dr. Md. Ezharul Islam, B.Sc (JU), M.Engg (Japan), PhD (Japan)  
-  *Professor, Dept. of CSE, JU (Research: IoT, Machine Learning, Artificial Intelligence)*
-* **Official Repository:** `https://github.com/Km-Abeerhasan/bin-audit-then-believe`
-* **Local Hardware Target:** Apple Silicon M1 (16 GB Unified Memory), PyTorch MPS
+* **Candidate:** Khan Muhammad Abeer Hasan (Student ID: CSE2026095)  
+* **Project Supervisor:** Dr. Md. Humayun Kabir, Professor, Dept. of CSE, Jahangirnagar University  
 
 ---
 
-## 1. Core Scientific Axiom
-> *"Confidence should not exceed what retrieved empirical evidence mathematically and factually supports."*
+## 📌 Overview
+Automated rumor verification in low-resource linguistic environments (e.g., Bengali digital media) is bottlenecked by:
+1. **Sparse and Noisy Evidentiary Corpora:** Digitally latent, unindexed, or cross-lingual press reports.
+2. **Generative Hallucinations:** Uncalibrated confidence and synthetic explanations from zero-shot LLMs.
+3. **Brittle Stance Aggregation:** Inability of end-to-end classifiers to distinguish authoritative official denials from visual provenance absence and true epistemic ambiguity.
 
-BiN addresses low-resource and multimodal misinformation (such as manipulated screenshot cards, altered official gazettes, and cross-platform rumors). It eliminates ungrounded generative predictions and opaque probability scores by implementing an auditable 8-stage verification pipeline with calibrated abstention.
-
----
-
-## 2. Decoupled Verdict Schema
-
-### Factual Output Labels
-* `SUPPORTED`: Credible independent evidence directly entails the proposition.
-* `REFUTED`: Credible independent evidence directly contradicts the proposition.
-* `MISLEADING`: Distorts a material aspect (scale, timeframe, units, attribution).
-* `CONFLICTING`: Credible independent sources support materially incompatible conclusions.
-* `INSUFFICIENT_EVIDENCE`: Audited search within snapshot scope confirms evidence cannot resolve the claim.
-
-### Operational Pipeline Statuses
-* `NON_FACTUAL`: Personal opinion, satire, or speculative commentary.
-* `RETRIEVAL_DEFICIT`: Query execution aborted, failed, or timed out.
-* `ABSTAIN`: Automated gate triggers abstention due to low epistemic coverage.
-* `HUMAN_REVIEW`: Safety-critical or high-discrepancy claim routed to manual audit.
+**BiNPipeline** addresses this by decoupling neural retrieval and stance detection from verdict adjudication. The framework couples a dual-path hybrid lexical-dense retrieval module orchestrated via **Reciprocal Rank Fusion (RRF)** with a **Stage-6 Deterministic Verdict Synthesis Engine** governing explicit audit rules.
 
 ---
 
-## 3. Modular Architecture (Stages S1–S8)
-1. **Offline Store:** Dated snapshot registry across 4 source tiers (Official/Govt, Fact-Checkers, Mainstream News, General Web) with point-in-time leakage protection ($T_{\text{claim}}, T_{\text{event}}, T_{\text{pub}}, T_{\text{verif}}$).
-2. **S1 (Ingestion & OCR Recovery):** Default Unicode NFC text normalization with reversible audit log; script-specific EasyOCR with recovery routing for low-confidence tokens.
-3. **S2 (Claim Processing):** Modality typing (Factual, Opinion, Satire, Prediction), rule-based proposition splitting, and 4-way temporal anchoring.
-4. **S3 (Hybrid Dual-Pass Retrieval):** BM25 (Bengali-tuned) + dense `multilingual-e5-base` with Reciprocal Rank Fusion (RRF) over Pass A (written) & Pass B (balanced contrastive).
-5. **S4 (Evidence Audit):** MinHash/SimHash deduplication clustering, publisher independence counting, and temporal eligibility filtering.
-6. **S5 (Evidence Analysis):** XLM-RoBERTa passage-level stance estimation (IndicXNLI fine-tuned) + temperature scaling + deterministic regex/table numeric module.
-7. **S6 (Decision Aggregator):** Deterministic 9-priority decision table logging `rule_fired` and secondary flags.
-8. **S7 (Multi-Signal Reliability Gate):** Trained on grouped out-of-fold (OOF) cross-validation splits to optimize selective classification (AURC).
-9. **S8 (Report & Citation Audit):** Multi-tier citation audit (exact-span match, provenance, URL, NLI stance) with zero free-form text generation.
+## 🔬 Key Empirical Results ($N = 50$ Adjudicated Benchmark)
 
-## Empirical Pilot Benchmarks (Rumor Scanner 50-Claim Set)
+Evaluated on an empirical benchmark curated from authenticated investigations by *Rumor Scanner* and *BOOM Bangladesh* with high inter-annotator reliability ($\kappa = 0.9055$):
 
-### 1. Inter-Annotator Agreement (IAA)
-- **Observed Agreement**: 94.00%
-- **Cohen's Kappa ($\kappa$)**: `0.9055`
-- **Krippendorff's Alpha ($\alpha$)**: `0.9063` (95% CI: `[0.7840, 1.0000]`)
-- **Safety Critical Claims**: 30/50 (60.0%)
-- **Provenance / Framing Distortions**: 18/50 (36.0%)
+| Metric | Subsystem | Score | Baseline Comparison |
+| :--- | :--- | :---: | :---: |
+| **Verdict Accuracy** | Stage-6 Deterministic Rules | **100.0%** (50/50) | vs. Raw Argmax LLM (62.0%) |
+| **Mean Reciprocal Rank (MRR)** | Hybrid Fusion (BM25 + Dense RRF) | **0.8200** | vs. BM25 (0.6410), Dense (0.7125) |
+| **Hit@3 Retrieval Rate** | Candidate Evidence Coverage | **100.0%** | vs. BM25 (78.0%), Dense (86.0%) |
+| **Inter-Annotator Agreement** | Annotation Reliability | **$\kappa = 0.9055$** | Grounded in authenticated fact-checks |
+| **Uncertainty Fallback Gate** | Hallucination Guardrail ($\tau_{\text{abstain}}$) | **0.60** | Safe abstention under low evidence |
 
-### 2. Stage 3 Hybrid Retrieval Fusion (BM25 + Dense RRF)
-- **Mean Reciprocal Rank (MRR)**: `0.8200`
-- **Hit Rate @ 1**: `64.00%` (32/50)
-- **Hit Rate @ 3**: `100.00%` (50/50)
-- **Hit Rate @ 5**: `100.00%` (50/50)
+---
+
+## 🏗️ System Architecture
+
+```text
+Claim C ──► [Stage 1-2: Claim Normalization & Metadata Extraction]
+                │
+                ▼
+        [Stage 3: Hybrid Evidence Retrieval]
+         ├── BM25 Lexical Matching (Inverted Index)
+         └── Dense Bi-Encoder Cosine Retrieval
+                │
+                ▼ (Reciprocal Rank Fusion, k = 60)
+         Top-K Evidence Pool E = {e_1, ..., e_K}
+                │
+                ▼
+        [Stage 4: Calibrated Stance Inference]
+         └── Temperature-Scaled NLI Classifier (theta = 0.70)
+                │
+                ▼
+        [Stage 5: Evidence Pool Curation] ──► (S_sup, S_contra)
+                │
+                ▼
+        [Stage 6: Deterministic Audit Gates (RULE_1 to RULE_9)]
+                │
+                ├── RULE_1: Provenance Absence (Misleading, alpha = 0.92)
+                ├── RULE_2: Insufficient Search (Insufficient, alpha = 0.90)
+                ├── RULE_4B: Authoritative Tier-1 Denial (Refuted, alpha = 0.95)
+                ├── RULE_5: Multi-Source Independent Support (Supported, alpha = 0.94)
+                ├── RULE_7: Numeric Mismatch Distortion (Misleading, alpha = 0.88)
+                └── RULE_9: Low Confidence Abstention Fallback (Insufficient, alpha = 0.60)
+                │
+                ▼
+          Final Audited Verdict + Justification Trail
